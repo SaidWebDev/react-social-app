@@ -3,19 +3,26 @@ const admin = require('firebase-admin');
 
 // there only one app to deply, check .frebaserc
 admin.initializeApp();
+
+const express = require('express');
+const app = express();
+
+
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
 
-//First API function
+// First API function
 exports.helloWorld = functions.https.onRequest((request, response) => {
  response.send("Hello Said!");
 });
 
-// Second API fucntion
-exports.getScreams = functions.https.onRequest((req, res) => {
-    admin.firestore().
-    collection('screams')
+
+// Second API
+app.get('/screams', (req,res)=>{
+    admin
+    .firestore()
+    .collection('screams')
     .get()
     .then((data)=>{
         let screams =[];
@@ -24,14 +31,13 @@ exports.getScreams = functions.https.onRequest((req, res) => {
     });
        return res.json(screams); 
     }).catch(err => console.log(err));
-   });
-   
-
-   //Third API function:
+})
+ 
+// Third API function:
    exports.createScreams = functions.https.onRequest((req, res) => {
 
-        if(req.method!== 'POST'){
-            res.status(400).json({error: 'method not allowed'});
+        if(req.method !== 'POST'){
+           return res.status(400).json({error: 'method not allowed'});
         }
         const newScream = {
             body: req.body.body,
@@ -52,3 +58,5 @@ exports.getScreams = functions.https.onRequest((req, res) => {
         });
     
    });
+
+   exports.api=functions.https.onRequest(app);
