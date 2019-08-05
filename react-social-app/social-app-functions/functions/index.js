@@ -16,10 +16,11 @@ const config = {
     appId: "1:716185493921:web:3dcbf8f47e0f0685"
   };
 
-
-
 const firebase = require('firebase');
 firebase.initializeApp(config);
+
+const db = admin.firestore();
+
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -33,8 +34,7 @@ exports.helloWorld = functions.https.onRequest((request, response) => {
 
 // Second API
 app.get('/screams', (req,res)=>{
-    admin
-    .firestore()
+    db
     .collection('screams')
     .orderBy('createdAt','desc')
     .get()
@@ -60,8 +60,7 @@ app.get('/screams', (req,res)=>{
             createdAt: new Date().toISOString()
         };
 
-        admin
-        .firestore()
+        db
         .collection('screams')
         .add(newScream)
         .then((doc)=>{
@@ -83,18 +82,29 @@ app.post('/signup', (req,res) => {
     };
 
     //TODO: validate data
-
-    firebase
-    .auth()
-    .createUserWithEmailAndPassword(newUser.email, newUser.password)
-    .then((data) => {
-        return res.status(201).json({message: `user ${data.user.uid} signed up successfully`});
+    db.doc(`/users/${newUser.handle}`)
+    .get()
+    .then(doc=>{
+        if(doc.exists){
+            return res.status(400).json({handle: `This handle is already taken`});
+        }
+        else{
+           
+            return  firebase
+            .auth()
+            .createUserWithEmailAndPassword(newUser.email, newUser.password);
+        }
     })
-    .catch((err) => {
+    .then((data)=>{
+        return  data.user.getIdToken();
+    })
+    .then((token) =>{
+        return res.status(201).json({ token });
+    })
+    .catch((err) =>{
         console.error(err);
-        return res.status(500).json({ error: err.code});
+        res.status(500).json({error: err.code});
     });
-
 });
 
    exports.api=functions.https.onRequest(app);
