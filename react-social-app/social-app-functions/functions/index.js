@@ -34,19 +34,16 @@ app.get('/screams', (req,res)=>{
 })
  
 // Third API function:
-   exports.createScreams = functions.https.onRequest((req, res) => {
+  app.post('/scream',(req, res) => {
 
-        if(req.method !== 'POST'){
-           return res.status(400).json({error: 'method not allowed'});
-        }
         const newScream = {
             body: req.body.body,
             userHandle: req.body.userHandle,
             createdAt: admin.firestore.Timestamp.fromDate(new Date())
         };
 
-        admin.
-        firestore()
+        admin
+        .firestore()
         .collection('screams')
         .add(newScream)
         .then((doc)=>{
