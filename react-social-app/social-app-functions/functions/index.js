@@ -1,12 +1,25 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
+const app = require('express')();
+
 // there only one app to deply, check .frebaserc
 admin.initializeApp();
 
-const express = require('express');
-const app = express();
+const config = {
+    apiKey: "AIzaSyBVtrApYCsUoV-B_NXz5W0qIWgH9B2RlXY",
+    authDomain: "react-social-app-e3b9e.firebaseapp.com",
+    databaseURL: "https://react-social-app-e3b9e.firebaseio.com",
+    projectId: "react-social-app-e3b9e",
+    storageBucket: "react-social-app-e3b9e.appspot.com",
+    messagingSenderId: "716185493921",
+    appId: "1:716185493921:web:3dcbf8f47e0f0685"
+  };
 
+
+
+const firebase = require('firebase');
+firebase.initializeApp(config);
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -44,7 +57,7 @@ app.get('/screams', (req,res)=>{
         const newScream = {
             body: req.body.body,
             userHandle: req.body.userHandle,
-            createdAt: admin.firestore.Timestamp.fromDate(new Date())
+            createdAt: new Date().toISOString()
         };
 
         admin
@@ -57,8 +70,31 @@ app.get('/screams', (req,res)=>{
         .catch((err)=>{
             res.status(500).json({error: ` Someting went wrong`});
             console.error(err);
-        });
-    
+        });   
    });
+
+//Signup route
+app.post('/signup', (req,res) => {
+    const newUser = {
+        email: req.body.email,
+        password: req.body.password,
+        confirmPassword: req.body.confirmPassword,
+        handle: req.body.handle,
+    };
+
+    //TODO: validate data
+
+    firebase
+    .auth()
+    .createUserWithEmailAndPassword(newUser.email, newUser.password)
+    .then((data) => {
+        return res.status(201).json({message: `user ${data.user.uid} signed up successfully`});
+    })
+    .catch((err) => {
+        console.error(err);
+        return res.status(500).json({ error: err.code});
+    });
+
+});
 
    exports.api=functions.https.onRequest(app);
