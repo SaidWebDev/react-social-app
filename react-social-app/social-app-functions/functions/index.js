@@ -182,12 +182,12 @@ app.post('/login', (req, res) => {
       })
       .catch((err) => {
         console.error(err);
-        if (err.code === 'auth/wrong-password') {
+        if (err.code === 'auth/wrong-password' | err.code =='auth/user-not-found') {
           return res
             .status(403)
             .json({ general: 'Wrong credentials, please try again' });
         } else return res.status(500).json({ error: err.code });
       });
   });
-  
+
 exports.api = functions.https.onRequest(app);
